@@ -1,21 +1,30 @@
-# 🧠⛓️ AI x Web3 学习之路
+# 🧠⛓️ AI × Web3 Learning
 
-> 从入门到实践的 AI x Web3 学习旅程
+> Personal learning journal and proof-of-work for [AI × Web3 School](https://aiweb3.school/).
+
+## Links
+
+- **Handbook**：https://aiweb3.school/zh/handbook/
+- **WCB 课程页面**：https://web3career.build/zh/programs/AI-Web3-School
+- **WCB Learning 页面**：https://web3career.build/zh/programs/AI-Web3-School#tab=learning
 
 ## 📂 目录结构
 
 ```
-├── roadmap/      # 学习路线与计划
-├── notes/        # 学习笔记
-├── projects/     # 练手项目代码
-├── check-in/     # 每日打卡记录
-└── resources/    # 资源收藏（教程、论文、工具）
+├── profile.md              # 学员档案
+├── learning-plan.md        # 学习计划
+├── daily/                  # 每日打卡
+├── tasks/                  # 任务
+├── notes/                  # 学习笔记
+├── experiments/            # 实验/项目代码
+├── handbook-feedback/      # Handbook 反馈
+├── hackathon/              # Hackathon 项目
+├── submissions/            # 作业提交
+├── templates/              # 模板
+├── resources/              # 资源收藏
+└── README.md               # 本文件
 ```
 
-## 🎯 目标
+## ⚠️ 隐私提醒
 
-探索 AI 与 Web3 的交叉领域，开发为主，全方向学习。
-
-## 🧑‍🎓 学员
-
-**Calciux** — AI 有基础，Web3 新手
+此仓库为 public，**请不要** 提交任何隐私信息、API key、助记词、私钥、未公开联系方式、内部会议链接或他人个人数据。
