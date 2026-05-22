@@ -1,155 +1,133 @@
-# 📋 AI x Web3 学习计划
+# 📋 AI × Web3 学习计划
 
-> 学员：Calciux ｜ 投入：约 2h/天 ｜ 方向：开发为主全方向探索
-
----
-
-## Phase 1: Web3 基础扫盲（预计 2 周）
-
-**目标**：理解区块链核心概念，亲手部署一个智能合约到测试网。
-
-### Week 1 — 区块链核心概念
-| 天 | 内容 | 资源 | 产出 |
-|---|---|---|---|
-| Day 1 | 区块链是什么：区块、链、共识、去中心化 | [Ethereum.org 初学者指南](https://ethereum.org/zh/learn/) | 笔记 |
-| Day 2 | 账户模型 vs UTXO、公钥/私钥、地址生成 | [Ethereum 账户](https://ethereum.org/zh/developers/docs/accounts/) | 笔记 |
-| Day 3 | 交易结构、Gas、区块浏览器使用 | [Etherscan 体验](https://sepolia.etherscan.io/) | 亲手查一笔交易 |
-| Day 4 | 钱包实操：安装 MetaMask（浏览器插件），领测试币 | [Sepolia Faucet](https://sepoliafaucet.com/) | 钱包地址 + 测试币到账 |
-| Day 5 | 智能合约概念：什么是合约、状态变量、交易 vs 调用 | [Solidity 入门](https://docs.soliditylang.org/) | 笔记 |
-| Day 6 | 练习：Remix IDE 上手 + 写第一个合约 | [Remix IDE](https://remix.ethereum.org/) | 跑通 Counter 或 Storage 合约 |
-| Day 7 | 回顾 + 用 ethers.js / web3.js 与合约交互 | [ethers.js 文档](https://docs.ethers.org/) | 代码片段 |
-
-### Week 2 — 智能合约深入 + 测试网部署
-| 天 | 内容 | 资源 | 产出 |
-|---|---|---|---|
-| Day 8 | Solidity 基础语法：变量、函数、修饰符、事件 | [CryptoZombies 第1课](https://cryptozombies.io/) | 笔记 |
-| Day 9 | 映射、结构体、数组 + 合约间调用 | CryptoZombies 第2-3课 | 代码 |
-| Day 10 | ERC-20 标准：读懂标准接口 | [OpenZeppelin ERC-20](https://docs.openzeppelin.com/contracts/5.x/erc20) | 部署一个测试代币 |
-| Day 11 | ERC-721 (NFT) 标准：Mint 一张图片 | [OpenZeppelin ERC-721](https://docs.openzeppelin.com/contracts/5.x/erc721) | 部署一个测试 NFT |
-| Day 12 | Hardhat 框架：本地开发环境搭建 | [Hardhat 教程](https://hardhat.org/tutorial) | 跑通测试网部署 |
-| Day 13 | 项目：写一个简单合约 + 单元测试 + 部署到 Sepolia | 综合练习 | 完成 Phase 1 项目 |
-| Day 14 | 回顾 + Web3 安全基础（重入、权限检查等） | [SWC Registry](https://swcregistry.io/) | 笔记 |
-
-**Phase 1 里程碑**：部署一个智能合约到 Sepolia 测试网 ✅
+> 学员：Calciux ｜ 方向：开发/Builder ｜ 投入：约 2h/天
 
 ---
 
-## Phase 2: AI 能力进阶（预计 2 周）
+## 第一部分：AI 基础（Week 1）
 
-**目标**：掌握 RAG 和 AI Agent 的基本开发，能自己搭建一个带知识库的 LLM 应用。
+**对应 Handbook**：[AI 基础](https://aiweb3.school/zh/handbook/) 章节（LLM → 评估）
 
-### Week 3 — RAG 上手
-| 天 | 内容 | 资源 | 产出 |
-|---|---|---|---|
-| Day 15 | Embedding 概念 + 向量数据库原理 | [OpenAI Embeddings](https://platform.openai.com/docs/guides/embeddings) | 笔记 |
-| Day 16 | 用 LangChain 搭建 RAG Pipeline | [LangChain RAG 教程](https://python.langchain.com/docs/tutorials/rag/) | 跑通本地 RAG |
-| Day 17 | 向量数据库实操：Chroma / FAISS | LangChain + Chroma 集成 | 代码 |
-| Day 18 | 文本分割策略 + 检索优化（chunk size, top-k） | 实验不同参数 | 对比结果 |
-| Day 19 | RAG 进阶：HyDE、多路召回、重排序 | 论文 + 实践 | 笔记 |
-| Day 20 | 项目：RAG 问答机器人（对自己文档提问） | 综合练习 | 完成 RAG 项目 |
-| Day 21 | 回顾 + 当前 RAG 的局限性和改进方向 | 阅读整理 | 笔记 |
+**目标**：补齐 AI 侧的共同语言，为后续 Agent 开发打基础。
 
-### Week 4 — AI Agent 入门
-| 天 | 内容 | 资源 | 产出 |
-|---|---|---|---|
-| Day 22 | Agent 核心概念：工具（Tool）、思考链（ReAct）、记忆（Memory） | [LangChain Agent 文档](https://python.langchain.com/docs/tutorials/agents/) | 笔记 |
-| Day 23 | 写第一个 Agent：Tool-using 简单 Agent | LangChain Agent 教程 | 代码 |
-| Day 24 | 多工具 Agent：搜索引擎 + 计算器 + 天气 | 组合多个 Tool | 跑通 |
-| Day 25 | LangGraph 入门：有向图编排 Agent | [LangGraph 快速开始](https://langchain-ai.github.io/langgraph/tutorials/introduction/) | 跑通示例 |
-| Day 26 | Agent 记忆机制：短期、长期、持久化 | LangGraph Memory | 笔记 |
-| Day 27 | 项目：一个能查信息 + 做总结的多功能 Agent | 综合练习 | 完成 Agent 项目 |
-| Day 28 | 回顾 + Agent 应用场景总结 | 阅读整理 | 笔记 |
+| Day | 主题 | Handbook 章节 | 产出 |
+|:---:|------|:-------------:|:----:|
+| 1 | 大语言模型（LLM）— 能力边界、Token 机制、API 调用 | [大语言模型](https://aiweb3.school/zh/handbook/llm/) | 笔记 + 调用一次 LLM API |
+| 2 | 提示词（Prompt）— 结构、角色设定、输出格式控制 | [提示词](https://aiweb3.school/zh/handbook/prompt/) | 整理自己的 Prompt 模板 |
+| 3 | 上下文（Context）— Token 限制、窗口管理、截断策略 | [上下文](https://aiweb3.school/zh/handbook/context/) | 实验不同上下文长度的效果 |
+| 4 | 检索增强生成（RAG）— Embedding、向量库、检索策略 | [检索增强生成](https://aiweb3.school/zh/handbook/rag/) | 跑通一个本地 RAG 管线 |
+| 5 | 智能体（Agent）— ReAct、工具调用、记忆 | [智能体](https://aiweb3.school/zh/handbook/agent/) | 写一个最少 Tool-using Agent |
+| 6 | 框架（Frameworks）+ MCP — LangChain、LangGraph、协议 | [框架](https://aiweb3.school/zh/handbook/frameworks/) + [MCP](https://aiweb3.school/zh/handbook/mcp/) | 对比不同框架的编排方式 |
+| 7 | 评估（Evaluation）— 如何测试 Agent 行为和工具调用 | [评估](https://aiweb3.school/zh/handbook/evaluation/) | 为一个 Agent 写评估用例 |
 
-**Phase 2 里程碑**：一个可运行的 RAG 问答系统 + 一个 Tool-using Agent ✅
+**里程碑**：能说自己懂 LLM 能做什么不能做什么，能写一个 Tool-using Agent ✅
 
 ---
 
-## Phase 3: AI x Web3 融合（持续）
+## 第二部分：Web3 基础（Week 2-3）
 
-**目标**：将 AI 能力与 Web3 结合，做出有价值的融合项目。
+**对应 Handbook**：[Web3 基础](https://aiweb3.school/zh/handbook/) 章节（网络 → 安全）
 
-### 可选方向（选 1-2 个深入）
+**目标**：理解链上系统的基本运行方式，亲手部署合约到测试网。
 
-#### 方向 A：链上 AI 推理验证
-- zkML 概念入门
-- [EZKL](https://github.com/zkonduit/ezkl) 实践：将 ML 模型生成零知识证明，链上验证
-- 项目：链上验证的图片分类器
+| Day | 主题 | Handbook 章节 | 产出 |
+|:---:|------|:-------------:|:----:|
+| 8 | 网络（Network）— 区块、共识、L2、RPC | [网络](https://aiweb3.school/zh/handbook/network/) | 用 curl 调一次 RPC |
+| 9 | 密码学（Cryptography）— 哈希、公私钥、签名 | [密码学](https://aiweb3.school/zh/handbook/cryptography/) | Python 跑一次 ECDSA 签名验证 |
+| 10 | 钱包（Wallet）— EOA、地址派生、助记词 | [钱包](https://aiweb3.school/zh/handbook/wallet/) | MetaMask 实操（已会 ✅） |
+| 11 | 智能合约（Smart Contract）— 状态变量、交易 vs 调用 | [智能合约](https://aiweb3.school/zh/handbook/smart-contract/) | Remix 部署一个 Counter |
+| 12 | 账户抽象（AA）— ERC-4337、Session Key | [账户抽象](https://aiweb3.school/zh/handbook/account-abstraction/) | 理解 AA 为何重要 |
+| 13 | DeFi — 资产、流动性、AMM、借贷 | [去中心化金融](https://aiweb3.school/zh/handbook/defi/) | 在 Sepolia 上走一次 Swap |
+| 14 | 预言机（Oracle）— 链外数据上链、价格喂价 | [预言机](https://aiweb3.school/zh/handbook/oracle/) | 读一次 Chainlink 喂价 |
+| 15 | 索引（Indexing）— 链上数据查询、The Graph | [索引](https://aiweb3.school/zh/handbook/indexing/) | 查一次子图数据 |
+| 16 | 安全（Security）— 合约风险、权限、交易模拟 | [安全](https://aiweb3.school/zh/handbook/security/) | 用 Tenderly 模拟一笔交易 |
 
-#### 方向 B：AI Agent + 智能合约交互
-- Agent 拥有钱包 + 签名交易
-- Agent 自动执行 DeFi 操作（兑换、流动性提供）
-- 项目：自然语言驱动的 DeFi Agent
-
-#### 方向 C：去中心化 AI 推理网络
-- [Bittensor](https://bittensor.com/) / [Gensyn](https://www.gensyn.ai/) 等网络概念
-- 在开放网络上贡献/消费模型推理
-- 项目：运行一个子网节点或调用去中心化推理
-
-#### 方向 D：AI 评分的链上信誉系统
-- Agent 分析链上行为数据 -> 生成信誉分
-- 链上存储 + 合约读取
-- 项目：DAO 贡献者信誉评分
-
-### Phase 3 推荐路径
-1. 先做 **方向 B**（AI Agent + 链交互）— 与 Phase 2 衔接最自然
-2. 再探索 **方向 A**（zkML）— 技术深度高，加分项
-3. 有余力再看方向 C / D
+**里程碑**：在 Sepolia 上部署一个合约 + 用 Block Explorer 验证 ✅
 
 ---
 
-## 核心技术栈推荐
+## 第三部分：AI × Web3 Bridge（Week 4-5）
+
+**对应 Handbook**：[AI × Web3 Bridge](https://aiweb3.school/zh/handbook/) 章节（链感知上下文 → 去中心化 AI）
+
+**目标**：把 AI 能力和链上系统真正连起来。
+
+| Day | 主题 | Handbook 章节 | 产出 |
+|:---:|------|:-------------:|:----:|
+| 17 | 链感知上下文 — 链上状态如何进入 Agent 上下文 | [链感知上下文](https://aiweb3.school/zh/handbook/chain-aware-context/) | Agent 读取钱包余额 |
+| 18 | Web3 工具调用 — RPC、合约调用作为 Agent Tool | [Web3 工具调用](https://aiweb3.school/zh/handbook/web3-tool-use/) | Agent 调用链上数据 |
+| 19 | 智能体工作流 — 哪些步骤自动、哪些需人工确认 | [智能体工作流](https://aiweb3.school/zh/handbook/agent-workflow/) | 画一个 Agent 流程图 |
+| 20 | 智能体钱包 — Session Key、权限管理 | [智能体钱包](https://aiweb3.school/zh/handbook/agent-wallet/) | 配置一个有限权限的 Agent 钱包 |
+| 21 | 机器支付 — 小额支付、服务结算 | [机器支付](https://aiweb3.school/zh/handbook/machine-payment/) | Agent 自动支付一笔 Gas |
+| 22 | 结算与托管 — 自动化交易、争议处理 | [结算与托管](https://aiweb3.school/zh/handbook/settlement-and-escrow/) | 理解托管合约逻辑 |
+| 23 | 智能体身份 + 信任 / 声誉 | [智能体身份](https://aiweb3.school/zh/handbook/agent-identity/) + [信任](https://aiweb3.school/zh/handbook/agent-trust-and-reputation/) | 思考 Agent 如何被识别 |
+| 24 | 可验证 AI — 模型输出和执行的验证 | [可验证 AI](https://aiweb3.school/zh/handbook/verifiable-ai/) | 理解 zkML 的基本流程 |
+| 25 | AI 安全 + AI 隐私 | [AI 安全](https://aiweb3.school/zh/handbook/ai-security/) + [隐私](https://aiweb3.school/zh/handbook/ai-privacy/) | 整理 Agent 安全清单 |
+| 26 | 治理 AI + AI 主权 + 去中心化 AI | [治理](https://aiweb3.school/zh/handbook/governance-ai/) + [主权](https://aiweb3.school/zh/handbook/ai-sovereignty/) + [去中心化 AI](https://aiweb3.school/zh/handbook/decentralized-ai/) | 理解 AI 治理挑战 |
+
+**里程碑**：一个能调用链上工具 + 签名交易 + 记录结果的 Agent ✅
+
+---
+
+## 第四部分：前沿探索（持续）
+
+**对应 Handbook**：[前沿探索](https://aiweb3.school/zh/handbook/) 章节
+
+**目标**：选 1-2 个方向做出可展示的原型。
+
+| 方向 | 内容 | 产出目标 |
+|:----|:-----|:--------:|
+| [智能体商业](https://aiweb3.school/zh/handbook/agentic-commerce/) | Agent 发现服务 → 协商 → 支付 → 留凭证 | 最小可行演示 |
+| [钱包与权限](https://aiweb3.school/zh/handbook/wallet-permission/) | Session Key、Policy、Guard 原型 | 可交互的权限演示 |
+| [AI 安全](https://aiweb3.school/zh/handbook/exploration-ai-security/) | 攻击面演示、权限隔离、审计日志 | 安全 demo |
+| [治理](https://aiweb3.school/zh/handbook/governance/) | DAO 治理中的 AI 协作工具 | 原型 |
+| [开发工具](https://aiweb3.school/zh/handbook/dev-tooling/) | 合约理解、测试、代码审查工具 | 工具 |
+| [开放赛道](https://aiweb3.school/zh/handbook/open-track/) | 自由选题 | - |
+
+---
+
+## 核心技术栈
 
 ### Web3
-- **语言**：Solidity（合约）+ TypeScript（前端/脚本）
-- **框架**：Hardhat
-- **工具**：MetaMask, Ethers.js, OpenZeppelin
+- **合约**：Solidity
+- **框架**：Hardhat / Foundry
+- **工具**：MetaMask, Viem, OpenZeppelin
 - **测试网**：Sepolia
 
 ### AI
-- **LLM API**：OpenAI / DeepSeek（你已经会了）
-- **RAG 框架**：LangChain + Chroma
-- **Agent 框架**：LangChain Agent → LangGraph
-- **Embedding**：text-embedding-3-small / BGE
+- **LLM API**：OpenAI / DeepSeek
+- **RAG**：LangChain + Chroma
+- **Agent**：LangChain Agent → LangGraph
+- **评估**：LangSmith / 自建
 
-### AI x Web3
-- **钱包 SDK**：Viem / Ethers.js
-- **zkML**：EZKL
+### AI × Web3
+- **钱包 SDK**：Viem
+- **链上工具**：Coinbase AgentKit / LangChain 集成
 - **链上数据**：The Graph / Dune Analytics
+- **安全**：Tenderly Simulation / Rabby Wallet
 
 ---
 
 ## 学习资源汇总
 
-### Web3 入门
-| 资源 | 说明 |
-|---|---|
-| [Ethereum.org 学习中心](https://ethereum.org/zh/learn/) | 官方教程，中文 |
-| [CryptoZombies](https://cryptozombies.io/) | 游戏化学 Solidity |
-| [Hardhat 教程](https://hardhat.org/tutorial) | 本地开发环境 |
-| [EatTheBlocks](https://www.youtube.com/@EatTheBlocks) | 实战 YouTube 频道 |
-| [Patrick Collins 的 Solidity 课程](https://www.youtube.com/watch?v=gyMwXuJrbJQ) | 最完整的免费课程（英文） |
+### 固定入口
+| 资源 | 链接 |
+|:----|:----|
+| Handbook | https://aiweb3.school/zh/handbook/ |
+| WCB 课程页面 | https://web3career.build/zh/programs/AI-Web3-School |
+| WCB Learning | https://web3career.build/zh/programs/AI-Web3-School#tab=learning |
+| WCB Agent API | https://web3career.build/llms.txt |
+| GitHub | https://github.com/Calciux/ai-web3-learning |
 
-### AI 进阶
-| 资源 | 说明 |
-|---|---|
-| [LangChain 官方教程](https://python.langchain.com/docs/tutorials/) | RAG + Agent |
-| [LangGraph 教程](https://langchain-ai.github.io/langgraph/tutorials/) | Agent 编排 |
-| [LLM 应用开发最佳实践](https://github.com/datawhalechina/prompt-engineering-for-developers) | 中文，DataWhale |
-| [Andrej Karpathy 的 Intro to LLMs](https://www.youtube.com/watch?v=zjkBMFhNj_g) | LLM 原理精讲 |
-
-### AI x Web3
-| 资源 | 说明 |
-|---|---|
-| [ZKML 论文列表](https://github.com/worldcoin/best-of-zkml) | 零知识机器学习 |
-| [EZKL 文档](https://docs.ezkl.xyz/) | zkML 实操 |
-| [Bittensor 白皮书](https://bittensor.com/whitepaper) | 去中心化 AI 网络 |
+### Handbook 各章直接链接
+表格见上方每日计划，「Handbook 章节」一列的链接就是。
 
 ---
 
 ## 学习原则
 
-1. **动手 > 读书** — 每个概念学完立刻写代码验证
-2. **笔记即代码** — 笔记里包含可运行的代码片段
-3. **每日打卡** — 哪怕只有 30 分钟，记录学了什么
-4. **项目驱动** — 不追求"学完再动手"，边做边学
-5. **遇到问题先记下来** — 回头集中解决，不要卡太久
+1. **动手 > 读书** — 每章学完立刻写代码验证
+2. **笔记即产出** — 笔记里包含可运行的代码片段
+3. **每日打卡** — 每天至少记录学到了什么
+4. **Handbook 反馈闭环** — 发现 Handbook 的问题 → 记到 `handbook-feedback/`
+5. **遇到问题先记再问** — 不要卡太久
