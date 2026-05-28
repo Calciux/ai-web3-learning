@@ -84,3 +84,72 @@ Data        1000000000000000
 ```
 
 类比：你在 ATM 存钱，Tx Hash = 小票流水号（每笔唯一），Address = ATM 编号（固定不变）。不同人存钱 Logs 里的 Address 相同，但 Tx Hash 不同。
+
+---
+
+## 关键洞察：为什么 MetaMask 弹窗里 `to` 永远是合约地址
+
+### 现象
+
+调 `transfer(Account2, 0.0005)` 时，MetaMask 显示 `Interacted With (To): 0x7b799...E7f9`（WETH 合约地址），而不是 Account 2 的钱包地址。金额显示为「0.0005 unknown」。
+
+### 原因
+
+**EVM 交易模型中，`to` 字段永远填目标合约地址，具体调哪个函数、传什么参数写在 `data` 里。**
+
+```
+你的 transfer 交易：
+
+  to:    0x7b799...E7f9    ← EVM："你要找哪个合约？"
+  data:  0xa9059cbb        ← EVM："transfer(address,uint256) 的函数选择器"
+         + Account2地址      ← EVM："第一个参数 dst"
+         + 500000000000000   ← EVM："第二个参数 wad"
+
+EVM 执行流程：
+  1. 跳到 0x7b799...E7f9 的字节码
+  2. 匹配 transfer 函数
+  3. dst = Account2, wad = 500000000000000
+  4. balanceOf[Account1] -= wad; balanceOf[Account2] += wad
+```
+
+如果 `to` 填 Account 2 会怎样？Account 2 是普通钱包地址，不是合约，没有 `transfer` 函数 → 交易直接失败。
+
+### 对比
+
+| | 普通 ETH 转账 | 合约交互（transfer） |
+|---|---|---|
+| to | 对方钱包地址 | **合约地址** |
+| value | 你要转的 ETH | 通常为 0 |
+| data | 空 | 函数选择器 + 参数 |
+| 实际效果 | 对方余额 +N | 合约内部状态被修改 |
+
+---
+
+## Step 3：transfer — 转账 WETH 给另一个账户
+
+### 操作
+
+1. Account 1 已连接 Etherscan
+2. Write Contract → `2. transfer`
+3. `dst`：填入 Account 2 地址
+4. `wad`：填入 `500000000000000`（= 0.0005 WETH）
+5. 点 Write → MetaMask 弹出 → 人工审核 → 确认
+
+### 交易信息
+
+- **Tx Hash**：`0xeacd70125ceadca0d9550740fc2dff6d623b8c4022d8b24e4e6d19b195d5ab71`
+
+### 截图记录
+
+**交易详情：**
+![transfer 交易](step3-transfer.png)
+
+**Account 2 余额验证（balanceOf）：**
+![Account 2 balanceOf](step3-acc2-balance.png)
+
+### 理解
+
+- `transfer` 封装了底层合约调用的复杂性——dst 写在 data 字段里，不是 to 字段
+- 交易成功后，WETH 合约内部 `balanceOf[Account1]` 减少，`balanceOf[Account2]` 增加
+- Account 2 从未直接与合约交互，但余额已记录在链上
+- Account 1 剩余 0.0005 WETH，Account 2 收到 0.0005 WETH
