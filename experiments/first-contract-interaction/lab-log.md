@@ -153,3 +153,50 @@ EVM 执行流程：
 - 交易成功后，WETH 合约内部 `balanceOf[Account1]` 减少，`balanceOf[Account2]` 增加
 - Account 2 从未直接与合约交互，但余额已记录在链上
 - Account 1 剩余 0.0005 WETH，Account 2 收到 0.0005 WETH
+
+---
+
+## 实验记录：部署 Simple 合约并源码验证
+
+> 日期：2026-05-28
+> 网络：Sepolia 测试网
+> 工具链：Remix + MetaMask + Etherscan
+
+### 合约源码
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract Simple {
+    uint public value;
+    function set(uint _v) public { value = _v; }
+}
+```
+
+### 操作步骤
+
+1. Remix → 新建 `Simple.sol` → 粘贴合约 → 编译（Solidity 0.8.7）
+2. Deploy & Run → Environment 选 Browser Extension (MetaMask) → Deploy
+3. 合约部署成功 → 得到合约地址和创建交易 hash
+4. 在 Remix 测试：`value()` → `0`  →  `set(42)` →  `value()` → `42` ✅
+5. Etherscan 打开合约页面 → 点 Contract → Verify and Publish
+6. 验证表单：Single File / v0.8.7+commit.e28d00a7 / MIT License → 粘贴源码 → 验证通过
+
+### 部署信息
+
+| 项目 | 内容 |
+|------|------|
+| **合约地址** | `0xfd9e68338AdcFE961ddcbE6D15d4A5fE01043ceB` |
+| **创建交易** | `0x0f7c85869ce5e1161c85b6e0e81135da1fece38204598e7643c1d114aeb5251d` |
+| **部署者** | `0x0EBbAbAeea0Db1e6552BF3f3e5F5DAA02858c28D` |
+| **编译器** | Solidity v0.8.7 |
+| **验证状态** | ✅ 已验证（Verified） |
+| **初始 value** | `0` |
+| **set(42) 后** | `42` |
+
+### 理解
+
+- 部署合约是一笔特殊的交易：`to` 字段为空，`data` 字段是完整的合约字节码
+- Etherscan 源码验证 = 上传源码 → 用指定版本重新编译 → 比对链上字节码 ← 本质是哈希校验
+- 合约部署后任何人都能调 `value()` 读最新值，通过遍历 `set()` 调用的历史交易可追溯 value 的每一次变更
+- 链上数据完全公开透明，人人可查
