@@ -1,6 +1,8 @@
 # Week 1 — AI × Web3 综合任务：画出 AI × Web3 最小交叉流程图
 
 > 目标：理解 AI 系统和链上操作之间的边界，标注谁发起、谁执行、谁签名、谁验证。
+>
+> **声明：** 本文档的时序图内容由我（Calciux）提供并复核修改，输出结构和生图 prompt 由 Hermes Agent 完成，图片由 OpenAI Image 2 生成。
 
 ![AI × Web3 工作流流程图](flowchart.png)
 
