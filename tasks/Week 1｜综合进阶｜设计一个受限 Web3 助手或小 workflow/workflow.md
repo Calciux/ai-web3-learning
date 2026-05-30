@@ -1,10 +1,36 @@
-qin# 受限 Web3 Workflow — ERC-20 Swap 设计稿
+# 受限 Web3 Workflow — ERC-20 Swap 设计稿
+
+> **本 Workflow 要解决的问题：**在 AI 辅助链上代币兑换的场景中，如何通过职责分离（AI 只读链/编码/验证，人不放行则不动资产）确保 AI 永远无法接触私钥或绕过人工确认。
 
 > 文档状态：交付稿
 > 作者：Calciux + Hermes Agent
 > 日期：2026-05-30
->
 > 设计过程详见 [设计过程.md](./设计过程.md)
+
+## 目录
+
+- [Task Graph](#task-graph)
+- [受限约束](#受限约束)
+- [用户输入](#用户输入)
+  - [Intent 字段](#intent-字段)
+  - [解析示例](#解析示例)
+- [节点详细规格](#节点详细规格)
+  - [Node 1: parse_intent](#node-1-parse_intent)
+  - [Node 2a: read_state](#node-2a-read_state)
+  - [Node 2b: fetch_quote](#node-2b-fetch_quote)
+  - [Node 3: generate_plan](#node-3-generate_plan)
+  - [Node 4: simulate](#node-4-simulate)
+  - [Node 5: human_review](#node-5-human_review-%EF%B8%8F)
+  - [Node 6: build_transaction](#node-6-build_transaction)
+  - [Node 7: sign_and_send](#node-7-sign_and_send-)
+  - [Node 8: verify](#node-8-verify)
+  - [节点角色总览](#节点角色总览)
+- [人工确认点](#人工确认点)
+- [结果验证](#结果验证)
+- [风险与限制](#风险与限制)
+- [附录：节点依赖关系](#附录节点依赖关系)
+- [附录 A：完整参数表](#附录-a完整参数表)
+- [附录 B：端到端输入输出示例](#附录-b端到端输入输出示例)
 
 ---
 
@@ -449,3 +475,191 @@ Node 1 ──┬──→ Node 2a ──┬──→ Node 3 ──→ Node 4 ─
 | `slippageActual` | float | 实际滑点 = `(quote - actualAmount) / quote`。若 > 用户设定 slippage，交易将 revert（由 amountOutMin 保护），此时 slippageActual 无意义 |
 | `events[]` | array | 解码后的事件列表：`{from, to, value}`。包含 approve 的 Approval 事件和 swap 的 1-2 个 Transfer 事件 |
 | `gasUsed` | uint256 | 两笔交易实际合计 gas 消耗（wei） |
+
+---
+
+## 附录 B：端到端输入输出示例
+
+以「用 10 USDC 换 WETH，滑点 0.5%」在 Sepolia 上走完整条 Workflow。
+
+### B.1 Node 1: parse_intent
+
+```
+输入：
+  "帮我把 10 USDC 换成 WETH，滑点就默认"
+
+输出：
+  {
+    tokenA:     "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",  // USDC
+    tokenB:     "0x7b79995e5f793a07bc00c21412e50ecae098e7f9",  // WETH
+    amount:     10000000,                                      // 10 USDC (6 decimals)
+    chainId:    11155111,                                       // Sepolia
+    slippage:   50,                                             // 0.5%
+    maxApprove: 10000000                                        // = amount
+  }
+```
+
+### B.2 Node 2a: read_state & Node 2b: fetch_quote（并行）
+
+```
+Node 2a 输入：{ tokenA: "0xA0b8...", chainId: 11155111 }
+Node 2a 输出：
+  {
+    balance:   50000000,    // 50 USDC
+    allowance: 0,            // 从未 approve 过 Router
+    gasPrice:  25000000000   // 25 gwei
+  }
+
+Node 2b 输入：{ tokenA: "0xA0b8...", tokenB: "0x7b79...", amount: 10000000, chainId: 11155111 }
+Node 2b 输出：
+  {
+    quote:       4985000000000000,                           // ~0.004985 WETH (18 decimals)
+    route:       ["0xA0b8...", "0x7b79..."],                 // 直接配对 [USDC, WETH]
+    liquidity:   5000000000,                                  // 池子有 5000 USDC
+    priceImpact: 0.002                                        // 0.2%
+  }
+```
+
+### B.3 Node 3: generate_plan
+
+```
+输入：
+  intent:      { tokenA:"0xA0b8...", tokenB:"0x7b79...", amount:10000000, chainId:11155111, slippage:50, maxApprove:10000000 }
+  walletState: { balance:50000000, allowance:0, gasPrice:25000000000 }
+  spotData:    { quote:4985000000000000, route:["0xA0b8...","0x7b79..."], liquidity:5000000000, priceImpact:0.002 }
+
+输出：
+  {
+    approveTx: {
+      to:    "0xA0b8...",                                    // USDC 合约
+      data:  "0x095ea7b300000000000000000000000068b3...",    // approve(Router, 10000000)
+      value: 0
+    },
+    swapTx: {
+      to:    "0x68b3465833fc72F70CCD80F3D72e78AaAE3b689e",  // Uniswap Router
+      data:  "0x38ed1739000000000000000000000000000000000...", 
+             // swapExactTokensForTokens(
+             //   amountIn=10000000,
+             //   amountOutMin=4956075000000000,  ← quote × (1 - 0.005)
+             //   path=[USDC, WETH],
+             //   to=用户地址,
+             //   deadline=当前时间+1200
+             // )
+      value: 0
+    },
+    risks: [
+      { type: "insufficient-allowance", severity: "中",
+        detail: "当前 allowance=0，需先发 approve 交易。两笔交易按顺序执行" },
+      { type: "indirect-route", severity: "低",
+        detail: "直接兑换 [USDC → WETH]，1 跳，无额外手续费" }
+    ]
+  }
+```
+
+### B.4 Node 4: simulate
+
+```
+输入：
+  approveTx: { to:"0xA0b8...", data:"0x095ea7b3...", value:0 }
+  swapTx:    { to:"0x68b3...", data:"0x38ed1739...", value:0 }
+  chainId:   11155111
+  state:     { balance:50000000, allowance:0 }
+
+输出：
+  {
+    simSuccess:  true,
+    simResult:   4984500000000000,   // 模拟成交 ~0.0049845 WETH（略低于 quote，正常浮动）
+    gasEstimate: 180000,            // ~180k gas
+    warnings:    []
+  }
+```
+
+### B.5 Node 5: human_review
+
+```
+输入：
+  plan:      { approveTx:{...}, swapTx:{...} }
+  simResult: { simSuccess:true, simResult:4984500000000000, gasEstimate:180000 }
+  risks:     [{ 当前 allowance=0, 需先 approve }, { 直接兑换, 1跳 }]
+  route:     ["0xA0b8...", "0x7b79..."]
+
+用户看到的确认页：
+  ════════════════════════════════
+    🔁 Swap 确认
+  ════════════════════════════════
+    📥 支付  10 USDC (0xA0b8...)
+    📤 获得  ~0.004985 WETH (0x7b79...)
+    🛣 路径  [USDC → WETH]  1 跳
+    💧 滑点  0.5%（低于 0.004961 回滚）
+    ⛽ Gas    0.0000045 ETH
+    ✅ 模拟  通过（偏差 0.01%）
+    ⚠️ 风险  2 项
+    📋 步骤  1. approve  2. swap
+    [✅ 确认]  [✏️ 修改]  [❌ 拒绝]
+  ════════════════════════════════
+
+用户点 [✅ 确认] →
+
+输出：
+  { status: "approved" }
+```
+
+### B.6 Node 6: build_transaction
+
+```
+输入：
+  confirmedParams: { ... }     // 与 Node 3 输出一致（用户未修改）
+  gasInfo: { gasEstimate:180000, gasPrice:25000000000 }
+
+输出：
+  {
+    tx1: {
+      to:       "0xA0b8...",
+      data:     "0x095ea7b3...",
+      value:    0,
+      gasLimit: 220000,           // 180000 × 1.2 取整
+      gasPrice: 25000000000,
+      nonce:    17
+    },
+    tx2: {
+      to:       "0x68b3...",
+      data:     "0x38ed1739...",
+      value:    0,
+      gasLimit: 300000,
+      gasPrice: 25000000000,
+      nonce:    18
+    }
+  }
+```
+
+### B.7 Node 7: sign_and_send
+
+```
+输入：{ tx1, tx2 }  →  钱包弹出两次确认窗口
+
+用户签名 approve → txHash1 = 0x7aecd9ff4b3eaf8340c9e460d3e3af80eee2c934352ef6ac1450f20db2e229bd
+用户签名 swap   → txHash2 = 0x1b3f5a7c8d9e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f
+
+输出：{ txHash1: "0x7aec...", txHash2: "0x1b3f..." }
+```
+
+### B.8 Node 8: verify
+
+```
+输入：{ txHash1: "0x7aec...", txHash2: "0x1b3f..." }
+
+输出：
+  {
+    success:         true,
+    actualAmount:    4984500000000000,     // 0.0049845 WETH
+    slippageActual:  0.0001,               // (4985000... - 4984500...) / 4985000... ≈ 0.01%
+    events: [
+      { from:"0x0EBb...", to:"0xA0b8...",             value: 10000000 },        // Approval
+      { from:"0x0EBb...", to:"0x68b3.../pool",        value: 10000000 },        // Transfer(tokenA)
+      { from:"0x68b3.../pool", to:"0x0EBb...",        value: 4984500000000000 } // Transfer(tokenB)
+    ],
+    gasUsed:         475000               // ~0.012 ETH 实际消耗
+  }
+
+→ AI 输出给用户："交易成功。支付 10 USDC，收到 0.0049845 WETH。
+                    滑点 0.01%，在 0.5% 保护范围内 ✅"
