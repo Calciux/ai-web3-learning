@@ -1,23 +1,9 @@
-# 🧑‍🎓 学员档案
+# 🧑‍🎓 学员档案 — Calciux
 
-| 项目 | 内容 |
-|------|------|
-| **GitHub** | [Calciux](https://github.com/Calciux) |
-| **AI 基础** | 有基础 — 传统 ML 项目经验（Kaggle/学校项目），用过 LLM API（OpenAI/DeepSeek） |
-| **Web3 基础** | 新手 — 从零开始 |
-| **编程能力** | 能独立开发 |
-| **目标方向** | 开发/Builder |
-| **每日可投入** | 约 2 小时 |
-| **语言偏好** | 中文为主，英文亦可 |
+**AI/ML 背景 Builder，正在深入 AI × Web3 交叉领域。**
 
-## 已会技能
-- Python / ML 开发（sklearn, pandas, numpy）
-- LLM API 调用（OpenAI, DeepSeek）
-- Git / GitHub 基础操作
+- **AI**：Python / ML 开发 · LLM API 调用 · 受限 Agent Workflow 设计（Task Graph · State Machine · HITL · Retry/Fallback · Eval Harness）
+- **Web3**：Solidity 合约开发 · Sepolia 测试网部署 · Etherscan 源码验证 · WETH/ERC-20 交互 · EOA/智能账户/多签分析
+- **交叉方向**：Agent Wallet 权限模型（Cobo Agentic Wallet）· 机器支付 · 可编程权限边界 · 链上可验证审计
 
-## 待学方向
-- [ ] 区块链 / 智能合约
-- [ ] RAG / 向量数据库
-- [ ] AI Agent
-- [ ] zkML
-- [ ] AI Agent + Web3 融合
+GitHub: [github.com/Calciux/ai-web3-learning](https://github.com/Calciux/ai-web3-learning)
