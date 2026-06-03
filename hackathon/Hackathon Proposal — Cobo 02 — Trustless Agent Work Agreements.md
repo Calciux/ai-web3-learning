@@ -32,40 +32,87 @@
 
 ## Week 2 方向对齐
 
-本项目落在两个方向的交叉点上，以 Dir2 为主、Dir1 为辅：
+本项目属于 **Dir1（Payment / Commerce / Settlement）** 的范畴，对应课程模块 B 的完整 commerce 链路。验收（evaluator）是 Dir1 的内在环节，不是 Dir2 的外部附加。
 
 ```
-Dir2（Identity / Reputation / Verification）← 主
-    Agent A 凭什么信任 Agent B？
-    → Evaluator 验收 = 第三方验证者的具体实现
-    → 验收结果上链 = Reputation 原始数据
-    → 每个 Agent 的身份 + 历史记录 = Identity Registry 入口
+Dir1（Payment / Commerce / Settlement）← 主
+    完整 commerce 链路：发布→托管→交付→验收→结算→争议
+    → ERC-8183 Escrow = 资金托管状态机（执行层）
+    → LLM Evaluator = 验收角色（Dir1 验证层）
+    → CAW = 预算控制 + 审计记录
 
-Dir1（Payment / Commerce / Settlement）← 辅
-    信任判断做出后，钱怎么安全流动？
-    → ERC-8183 Escrow = 资金托管状态机
-    → 验收通过 → 结算释放
+Dir2（Identity / Reputation / Verification）← 未来增强
+    跨交易的信任基座——ERC-8004 三注册表
+    → 通过 8183 Hook 集成（complete → writeReputation）
+    → MVP 暂不做，架构预留入口
 ```
 
 | Week 2 方向 | 在本项目的角色 | 参考 |
 |------------|--------------|------|
-| **Dir2（主）** | 信任基座：Agent 身份注册、Evaluator 验收作为第三方验证、结果上链留痕 | [模块 A Dir2](https://github.com/Calciux/ai-web3-learning/blob/main/submissions/Week%202%EF%BD%9C%E4%BA%A4%E5%8F%89%E9%A2%86%E5%9F%9F%EF%BD%9C%E6%A8%A1%E5%9D%97A-%E9%97%AE%E9%A2%98%E7%A9%BA%E9%97%B4%E4%B8%8E%E6%96%B9%E5%90%91%E5%9C%B0%E5%9B%BE.md) |
-| **Dir1（辅）** | 执行管道：托管合约管理资金状态机，验收通过后结算 | [模块 A Dir1](https://github.com/Calciux/ai-web3-learning/blob/main/submissions/Week%202%EF%BD%9C%E4%BA%A4%E5%8F%89%E9%A2%86%E5%9F%9F%EF%BD%9C%E6%A8%A1%E5%9D%97A-%E9%97%AE%E9%A2%98%E7%A9%BA%E9%97%B4%E4%B8%8E%E6%96%B9%E5%90%91%E5%9C%B0%E5%9B%BE.md) |
-| Dir3 | 间接关联——CAW 提供 Agent 的钱包权限边界 | - |
+| **Dir1（主）** | Commerce 全链路：托管合约管理资金状态机 + Evaluator 验收作为验证层环节 | [模块 A Dir1](https://github.com/Calciux/ai-web3-learning/blob/main/submissions/Week%202%EF%BD%9C%E4%BA%A4%E5%8F%89%E9%A2%86%E5%9F%9F%EF%BD%9C%E6%A8%A1%E5%9D%97A-%E9%97%AE%E9%A2%98%E7%A9%BA%E9%97%B4%E4%B8%8E%E6%96%B9%E5%90%91%E5%9C%B0%E5%9B%BE.md) |
+| Dir2（辅） | 未来方向：ERC-8004 声誉系统通过 8183 Hook 集成，使验收结果聚合为 Agent 历史声誉 | [模块 A Dir2](https://github.com/Calciux/ai-web3-learning/blob/main/submissions/Week%202%EF%BD%9C%E4%BA%A4%E5%8F%89%E9%A2%86%E5%9F%9F%EF%BD%9C%E6%A8%A1%E5%9D%97A-%E9%97%AE%E9%A2%98%E7%A9%BA%E9%97%B4%E4%B8%8E%E6%96%B9%E5%90%91%E5%9C%B0%E5%9B%BE.md) |
+| Dir3 | 间接关联——CAW 提供 Agent 的钱包权限边界（预算/合约/时间窗口） | - |
 | Applied Path | 无直接关系——本项目不涉及 DeFi 执行 | - |
 
 ---
 
 ## 问题定义
 
-核心问题是 Dir2 的信任问题：Agent 之间无法互相雇佣——**发包方怕接单方拿钱不干活，接单方怕发包方白嫖不给钱**。
+核心问题是 Dir1 的 commerce 问题：Agent 之间如何完成一次可追溯、可验证、有兜底的经济活动。
 
-这拆成两个子问题：
+拆成 Dir1 四层框架里的两个关键子问题：
 
-1. **信任判断（Dir2 主）**：谁来判断交付物是否合格？判断结果是否可信、可复查？
-2. **执行保障（Dir1 辅）**：判断做出后，资金如何安全地从托管中释放？双方都不能单方面动钱。
+1. **执行保障（验证层）**：交付物是否合格？谁来验收、标准是什么？判断结果是否可复查？
+2. **执行保障（协议层）**：判断做出后，资金如何安全地从托管中释放？双方都不能单方面动钱。
 
-这不是纯 AI 问题（AI 可以写分析报告但不能提供可信的第三方验证记录），也不是纯 Web3 问题（托管合约可以管钱但不知道交付物是否合格）。必须两条线交汇：Dir2 的验证层做判断，Dir1 的托管层做执行。
+Cobo 02 赛道描述精确对应这个结构：「发布→托管→交付→验收/驳回→付款」——这是 Dir1 的完整 commerce 链路，验收在链路内，不是外部附加。
+
+---
+
+## 设计依据：Agentic Commerce 手册
+
+参考：[AI × Web3 School Handbook — Agentic Commerce](https://aiweb3.school/zh/handbook/tracks/agentic-commerce/)
+
+手册提出的三个核心概念直接支撑本项目的设计：
+
+### Payment Intent（支付意图）
+
+手册定义：用户授权 Agent 花钱之前的结构化表达，应比一句"帮我买最合适的服务"更具体。
+
+本项目 `createJob` 的结构化字段对应 Payment Intent：
+
+| Payment Intent 字段 | 本项目实现 |
+|---------------------|-----------|
+| 任务目标 | `description` — "分析 ERC-8004 的核心机制" |
+| 预算 | `budget` — 0.01 ETH 赏金 |
+| 验收标准 | `checklist` — 5 个 yes/no 问题（如"是否覆盖三个 Registry？"） |
+| 退款条件 | 超时 → `claimRefund`；验收不通过 → `reject` |
+| 有效期 | `expiredAt` — 截止时间戳 |
+
+### Budget Control（预算控制）
+
+手册定义：预算应该分层——任务预算、服务预算、时间预算、风险预算、失败预算。MVP 实现单层任务预算（Escrow 托管金额），架构预留多层能力：
+
+| 预算层 | MVP | 未来（CAW Pact） |
+|--------|:---:|:---:|
+| 任务预算 | ✅ Escrow 金额 | 同 |
+| 服务预算 | — | 单次调用上限 |
+| 时间预算 | — | 每小时/每天总额度 |
+| 风险预算 | — | 新 Agent 首次交易需人工确认 |
+| 失败预算 | — | 连续拒绝 N 次后暂停 |
+
+### Proof of Task Completion（任务完成证明）
+
+手册定义：不同服务类型需要不同的交付证明。本项目属于「人工服务/内容生成」类——证据 = 交付物 + 验收记录 + 争议窗口：
+
+| 证明要素 | 本项目实现 |
+|---------|-----------|
+| 交付物 | Agent B 提交的分析报告（deliverableHash 指向内容） |
+| 验收记录 | LLM Evaluator 的 checklist 评分 + 理由（公开存储，可复查） |
+| 链上收据 | `complete()` 交易：payer/provider/amount/tx hash/timestamp |
+| 争议窗口 | MVP 不做，留 `Dispute` 入口 |
+
+手册还特别提醒：**高价值或主观结果不应该只靠模型自动放款**——本项目 MVP 场景为低价值（0.001 ETH 测试），且验收理由公开可复查，符合手册建议。
 
 ---
 
@@ -99,17 +146,17 @@ Agent A（发包方）                      Agent B（接单方）
 
 ---
 
-## 统一判断框架（7 问）——以 Dir2 信任基座为主视角
+## 统一判断框架（7 问）——以 Dir1 Commerce 全链路为主视角
 
 | # | 问题 | 回答 |
 |---|------|------|
-| 1 | **没有 AI？** | Dir2 的信任问题仍然存在——人可以手动审核交付物、手动写验收规则。但 AI 提供可规模化的独立验收（LLM Evaluator 代替人工审核），以及自动生成验收 Criteria。没有 AI，第三方验证就是人类瓶颈 |
-| 2 | **没有 Web3？** | Dir2 的信任问题无法用传统方式解决——中心化平台可以做评分（GPT Store），但做不到：验收记录不可篡改（Evaluator 判断上链后无法被任何一方删除）、身份无许可注册（任何 Agent 可自主注册而不需平台审核）、可组合验证（调用方可自由选择信任哪个 Evaluator）。Dir1 托管层同理——传统 Escrow 收 0.89%-3.25% 手续费 |
-| 3 | **角色分配？** | Agent Owner → 注册 Agent 身份（Dir2 Identity Registry 入口）+ 托管赏金（Dir1 Escrow）。Agent A（发包方）→ 创建任务。Agent B（接单方）→ 接单+交付。LLM Evaluator → Dir2 第三方验证者：检查交付物 → 输出 Accept/Reject + 理由上链。Escrow 合约 → Dir1 执行层：管理资金状态机。失败成本：Evaluator 误判 → A 或 B 损失赏金（最大风险）；A 不付款 → B 不交付（互相制衡） |
-| 4 | **自动化 vs 人工？** | 全自动：任务发布、接单、交付、LLM 验收评分、Accept→付款。需人工：争议升级（A 或 B 对验收结果不服 → 人工复查 Evaluator 的判断理由），Agent 身份的首次注册确认 |
-| 5 | **如何验证？** | 三层——身份层：Agent A/B 的链上身份可查（Dir2 Identity）。判断层：Evaluator 的验收理由（checklist 逐项评分）公开存储，任何第三方可复查（Dir2 Validation）。执行层：Escrow 所有状态变更 emit 事件，余额可查（Dir1 链上收据）。核心原则：信任判断（Dir2）和执行结果（Dir1）都留痕，不可篡改 |
-| 6 | **落地层？** | Dir2 协议层——Agent 身份注册 + 验收结果上链（为未来 ERC-8004 Registry 留入口）。Dir1 协议层——ERC-8183 Escrow 状态机。应用层——Agent A/B 交互 + Evaluator 验收逻辑 + Demo UI |
-| 7 | **失败原因？** | Dir2 最大风险：LLM Evaluator 验收标准不稳定（同一交付物两次判断不一致）。缓解：用具体 checklist（5 个 yes/no 问题），得分≥4 才通过；验收理由公开可复查。Dir2 次要风险：Evaluator 是单点信任（MVP 只有一个 Evaluator，未来需多 Evaluator 仲裁）。Dir1 次要风险：争议时钱卡在合约里需要人工介入 |
+| 1 | **没有 AI？** | 仍然成立——人可以手动发包、验收。但 AI 提供 Dir1 链路中的关键适应性：(1) 不同任务需要不同验收方式，AI 可根据任务描述自适应生成验收 checklist；(2) 7×24 独立验收——人做 Evaluator 是单点瓶颈；(3) 在授权边界内做适应性判断——不只执行规则，而是理解上下文后决定 Accept/Reject |
+| 2 | **没有 Web3？** | 部分成立——传统 Escrow.com 可托管资金。但 Web3 提供：(1) 无许可托管——任何 Agent 无需 KYC 即可接入（ERC-8183）；(2) 链上收据不可篡改——验收结果和结算记录上链后无法被任何一方删除；(3) 可组合性——托管合约可与 Dir3 权限层（CAW Pact）和 Dir2 声誉层（ERC-8004 Hook）组合。传统 Escrow 是封闭产品，链上托管是可编程积木 |
+| 3 | **角色分配？** | 用户→设定预算边界（金额/合约/时间窗口，通过 CAW Pact）、处理争议升级。Agent A（发包方）→创建任务+托管赏金。Agent B（接单方）→接单+执行+交付。LLM Evaluator → Dir1 验证层角色：检查交付物+输出 Accept/Reject+理由。Escrow 合约（ERC-8183）→ Dir1 协议层：管理资金状态机（Open→Funded→Submitted→Completed/Rejected）。CAW→ Dir3 辅助：Pact 限制 Agent 能花多少、在哪花。失败成本：Evaluator 误判 → A 或 B 受损（最大风险）；A 不付款 → B 不交付（制衡） |
+| 4 | **自动化 vs 人工？** | 全自动：任务发布、接单、交付、LLM 验收、Accept→付款。需人工：争议升级（对验收结果不服→人工复查 Evaluator 理由）、首次授权设置 Pact 边界。原则：验收标准和预算边界由人设定，边界内 Agent 自主执行，边界外自动拒绝或升级 |
+| 5 | **如何验证？** | Dir1 课程三层：**支付层**——链上收据+Escrow 余额可查（成本极低）。**交付层**——Evaluator 的 checklist 逐项评分 + 验收理由公开存储，任何第三方可事后复查。**记录层**——所有状态变更 emit 事件，不可篡改。核心原则：链上记录让纠纷有据可查，不可抵赖 |
+| 6 | **落地层？** | Dir1 课程四层框架：**场景层**（Agent B 提供 EIP 分析服务）→ **流程层**（发布→托管→交付→验收→付款）→ **验证层**（LLM Evaluator + checklist 评分 + 理由公开）→ **协议层**（ERC-8183 托管状态机 + CAW Pact 权限边界 + 未来 ERC-8004 Hook 声誉集成） |
+| 7 | **失败原因？** | (1) Evaluator 误判——LLM 验收标准不稳定。缓解：具体 checklist（5 个 yes/no），得分≥4 通过；理由公开可复查。(2) 用户不敢让 Agent 自动花钱——需成功案例。(3) 争议时钱卡在合约——MVP 只做 Happy Path，Dispute 留入口。(4) Evaluator 是单点信任——未来需多 Evaluator 仲裁 + ERC-8004 声誉辅助 |
 
 ---
 
