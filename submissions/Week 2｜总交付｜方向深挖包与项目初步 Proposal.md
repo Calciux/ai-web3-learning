@@ -187,9 +187,8 @@ Escrow 状态机全自动流转            超预算操作
 
 ### 3.1 目标用户
 
-- 想把重复性分析任务外包的 Agent 开发者（Client 侧）
-- 想提供付费 Agent 服务并得到链上支付保障的开发者（Provider 侧）
-### 3.2 真实场景（举例）
+- 想让自己的 Agent 自主外包任务的开发者（Client 侧）
+- 想让自己的 Agent 接单干活、通过链上托管收报酬的开发者（Provider 侧）
 
 以下两个场景来自 ERC-8183 标准原文的 Hook 示例——它们是标准作者认为这个协议最自然的用法。
 
@@ -260,16 +259,15 @@ Hackathon Proposal 详见：[hackathon/](../hackathon/Hackathon%20Proposal%20%E2
 | 资料 | 类型 | 帮助我判断什么 |
 |------|:---:|------|
 | [ERC-8183: Agentic Commerce](https://eips.ethereum.org/EIPS/eip-8183) | 标准 | 核心协议的全貌：6 状态状态机、角色权限（特别是 Evaluator 可以是 Client 自己、Provider 也能调 setBudget 议价）、`claimRefund` 不可 Hook、Ruffle 关键词（MUST/SHALL/MAY）决定 MVP 做什么不做什么 |
-| [ERC-8004: Trustless Agents](https://eips.ethereum.org/EIPS/eip-8004) | 标准 | 区分 Dir1 和 Dir2 的关键依据：8183 管单笔交易的托管结算，8004 管跨交易的声誉聚合。8183 的 Hook 系统设计就是为了接 8004——`complete` → writeReputation |
 | [AI × Web3 School — Agentic Commerce](https://aiweb3.school/zh/handbook/tracks/agentic-commerce/) | 课程 | Payment Intent、Budget Control、Proof of Task Completion 三个概念直接支撑了 Proposal 的设计依据。特别是「高价值或主观结果不应该只靠模型自动放款」——验证了我们人工确认点的设计 |
 | [课程模块 B：Payment / Commerce / Settlement](https://web3career.build/zh/programs/AI-Web3-School?tab=learning) | 课程 | 四层框架（场景层/流程层/验证层/协议层）纠正了此前「Dir1 = 支付管道」的窄化理解。验收是 Dir1 内在环节，不是 Dir2 外部附加——这次修正是整个 Week 2 最大的认知升级 |
 | [Cobo Agentic Wallet 文档](https://www.cobo.com/products/agentic-wallet/manual/start-here/introduction) | 产品 | Pact 机制为 Agent 提供任务级预算授权，对应「事前 — 部署前」的人工确认点。CAW 偏钱包与执行安全层，需与 ERC-8183/8004 组合使用才构成完整 commerce 链路 |
 | [x402 协议](https://www.x402.org/) | 协议 | 机器支付触发层对比：x402 解决「服务方怎么告诉 Agent 该付钱」，8183 解决「钱付了之后怎么托管和裁决」。两者互补不重叠 |
-| [Stripe Agentic Commerce](https://stripe.com/agentic-commerce) | 对照案例 | Web2 侧的 Agent 支付方案——帮助理解链上托管（无许可+可组合）相对传统 Escrow（封闭+KYC）的优势 |
 
 
 
-## 五、Week 2 完成清单
+
+## 六、Week 2 完成清单
 
 - [x] [AI × Web3 问题地图](../submissions/Week%202%EF%BD%9C%E4%BA%A4%E5%8F%89%E9%A2%86%E5%9F%9F%EF%BD%9C%E6%A8%A1%E5%9D%97A-%E9%97%AE%E9%A2%98%E7%A9%BA%E9%97%B4%E4%B8%8E%E6%96%B9%E5%90%91%E5%9C%B0%E5%9B%BE.md)
 - [x] 模块 B：Payment / Commerce / Settlement 深入（Direction 1 四层框架 + ERC-8183/8004 对比）
