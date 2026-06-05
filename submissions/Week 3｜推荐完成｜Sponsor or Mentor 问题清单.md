@@ -28,12 +28,12 @@
 
 ---
 
-## 问题 3：CAW 集成的最小可行路径 — 能不能先用 EOA 跑通再换？
+## 问题 3：CAW 集成的最佳实践 — 新手最容易踩的坑有哪些？
 
-**背景**：赛道要求集成 Cobo Agentic Wallet（CAW），但当前合约还没开始写，Agent 脚本也还没写。CAW 的 Pact 机制和 Policy Engine 是基础设施层——接入意味着要理解 CAW API、Pact 创建和审批流程、MPC 签名流程。
+**背景**：赛道要求集成 Cobo Agentic Wallet（CAW），当前合约和 Agent 脚本都还没写。CAW 的 Pact 机制和 Policy Engine 是必选项——接入意味着要理解 CAW API、Pact 创建和审批流程、MPC 签名流程。
 
 **具体问题**：
-- 从实际开发时间看，先拿 Remix + MetaMask EOA 把 ERC-8183 合约部署到 Sepolia、跑通 fund → submit → complete 全流程，然后再把 EOA 换成 CAW，这个路径可行吗？还是 CAW 的签名方式完全不同，导致「先 EOA 再换」等于重写？
+- 从零开始集成 CAW，有没有推荐的上手顺序？Pact 创建 → Policy Engine → MPC 签名的步骤中，哪一步最容易出问题？
 - CAW 的 Pact 审批需要 Owner 手机 App 确认——Demo 时这个步骤怎么展示？有没有 mock 模式或者自动化审批的方式？
 - 你们内部评估一下：30 分钟（缺口诊断里对 CAW 文档阅读的预估）够真正读懂 CAW 文档并判断接入工作量吗？还是我低估了？
 
@@ -42,4 +42,4 @@
 ## 备注
 
 - 以上问题都是**真实阻塞点**，不是在凑数。项目当前状态：合约零代码，Agent 零代码，CAW 零接触。这些问题的答案直接影响 Week 4 怎么排时间。
-- 如果 mentor 时间有限，优先回答**问题 3**（CAW 路径）——它决定了「先写合约」还是「先学 CAW」的开发顺序。
+- 如果 mentor 时间有限，优先回答**问题 3**（CAW 集成实战）——它决定了 Week 4 怎么最高效地推进 CAW 接入。

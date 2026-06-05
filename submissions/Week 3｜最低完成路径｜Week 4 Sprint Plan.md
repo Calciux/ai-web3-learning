@@ -12,9 +12,9 @@
 
 **Tier 策略**：
 - **Tier 1（靶心）**：合约 + CAW + 3 Agent 脚本全自动 — 本周目标
-- Tier 2（降级）：合约 + EOA + 3 Agent 脚本 — 如果 CAW 集成卡死超过 4 小时
-- Tier 3（保底）：合约 + Remix 手动交互
-- Tier 4（底线）：合约部署 + Etherscan 验证
+- Tier 2（缩减）：合约 + CAW + 减少 Agent 数量 / 简化 Pact — 如果 CAW 集成卡死超过 4 小时则缩减范围
+- Tier 3（保底）：合约 + CAW + Remix 手动交互
+- Tier 4（底线）：合约 + CAW + 部署 + Etherscan 验证
 
 ---
 
@@ -75,9 +75,9 @@
 - [ ] Audit Log 记录完整（谁发起、金额、操作类型、状态）
 - [ ] 超出 Pact 边界的操作被 Policy Engine 拒绝（验证拦截能力）
 
-### Tier 2 降级条件
+### Tier 2 缩减条件
 
-**只有 CAW 集成卡死超过 4 小时无进展时才考虑降级。** 降级后 Agent 直接用 EOA 私钥签名调合约，Pact 预算控制改为「合约 require 逻辑 + 硬编码预算上限」模拟。
+**只有 CAW 集成卡死超过 4 小时无进展时才考虑缩减范围。** 缩减后保留 CAW 但减少 Agent 数量或简化 Pact 逻辑，绝不降级到 EOA。
 
 ---
 
@@ -108,7 +108,7 @@ Step 3 (Evaluator): checklist 评分? → complete tx hash? → Provider 余额�
 
 ### Go/No-Go
 
-全流程 Sepolia + CAW 跑通至少一次。跑不通 → 降级 Tier 2（EOA 替代 CAW）。
+全流程 Sepolia + CAW 跑通至少一次。跑不通 → 缩减 Tier 2（减少 Agent 数量，保留 CAW）。
 
 ---
 
@@ -171,7 +171,7 @@ Step 3 (Evaluator): checklist 评分? → complete tx hash? → Provider 余额�
 
 模块 B 完成（CAW 集成：钱包 + Pact + API 调合约）？
   YES → 进模块 C 联调
-  NO（卡死 >4h）→ 降级 Tier 2：EOA 替代 CAW
+  NO（卡死 >4h）→ 缩减 Tier 2：减少 Agent 数量，保留 CAW
 
 模块 C 完成（全流程 Sepolia 跑通至少一次）？
   YES → 进模块 D 收尾

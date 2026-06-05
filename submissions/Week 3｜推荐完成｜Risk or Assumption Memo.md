@@ -62,7 +62,7 @@
 
 **实际情况**：CAW 是完全不熟悉的系统。API 稳定性未知，文档可能滞后于实际实现。赛道要求集成 CAW——如果 API 有坑，花在调试上的时间不可预测。
 
-**如果前提不成立**：降级到 EOA 钱包。但赛道对齐度打折——CAW 是 Cobo 赛道的核心要求。
+**如果前提不成立**：CAW 是必选项，没有降级空间——必须投入时间攻克集成问题。赛道对齐要求 CAW 在任何交付路径中都不可移除。
 
 ### 前提 7：评审者理解 Trustless 边界
 
@@ -112,14 +112,14 @@ ERC-8183 状态机的安全属性（特别是 `claimRefund` 不可 Hook 和 Fund
 
 ### 🟡 失败点 3：CAW 集成时间失控
 
-**概率**：中高。**影响**：中等（有降级方案）。
+**概率**：中高。**影响**：中等——CAW 是必选项，无降级空间，但可通过提前熟悉 API 降低阻塞风险。
 
 不熟悉 API + 不熟悉 MPC 钱包模型 + Hackathon 时间压力 = 可能花一整天调试一个 API 调用。CAW 文档可能和实际行为不一致，Policy Engine 的拦截规则可能比文档描述的更严格。
 
 **真实缓解**：
 - **不要**在 Week 4 第一天才开始看 CAW——Week 3 结束前至少跑通 CAW 的"创建钱包 → 查余额"最基本的流程
 - MVP 先用 EOA 跑通全流程，CAW 作为替换层接入
-- 如果 CAW 卡住超过 2 小时，立即降级
+- CAW 集成是硬性要求，遇到阻塞时调整策略而非降级——例如先用最简路径跑通 Pact 创建 + MPC 签名，再逐步叠加 Policy Engine 等高级功能
 
 ### 🟡 失败点 4：端到端联调地狱
 
@@ -175,20 +175,26 @@ Week 4 实际可用的开发天数可能只有 3-4 天（取决于 Week 3 任务
 
 **触发条件**：Week 4 Day 1 结束时合约已部署并在 Remix 上走通所有 6 状态转移。
 
-### Tier 2 — 降级 A：去 CAW，用 EOA
+### Tier 2 — 降级 A：简化实现，CAW 保留
 
-**触发条件**：CAW API 集成卡住超过 2 小时，或 Week 4 Day 2 结束时 CAW 仍未跑通基础流程。
+**触发条件**：整体进度落后，多个组件卡住，需收缩范围但不可移除 CAW。
 
-**交付**：合约 + EOA 钱包（私钥在 Agent 脚本中）+ 3 个 Agent 脚本 + 端到端 Demo。
+**交付**：合约 + CAW（Pact + MPC 签名）+ 简化 Agent 脚本 + 端到端 Demo。
 
 **变化**：
-- Agent 脚本直接用 `web3.py` 的私钥签名，不经过 CAW
-- Demo 中说明："当前用 EOA 直接签名，生产环境 CAW 提供 Pact 预算授权 + Policy Engine 拦截 + MPC 安全签名"
-- README 中保留 CAW 集成方案和架构图，标注为"下一步"
+- CAW 集成保留：Pact 创建 + MPC 签名完整链路——CAW 是必选项，不可降级
+- Agent 脚本简化：去掉非核心错误处理、日志装饰，只保留 Happy Path 关键逻辑
+- 联调范围收缩：只覆盖一条完整 Happy Path（createJob → fund → submit → evaluate → complete）
+- Evaluator 可使用固定评分（非真实 LLM 调用），聚焦展示 Evaluator 在流程中的角色位置
 
-**时间释放**：省下 CAW 集成的 2h → 加到联调或 Evaluator 稳定性测试。
+**时间重新分配**：
+| 任务 | 预计 |
+|------|:---:|
+| CAW 集成（Pact + 签名） | 2h |
+| 简化 Agent 脚本（2-3 个） | 3h |
+| 联调（Happy Path 单线） | 2h |
 
-**赛道对齐度**：下降但可接受——合约是主要交付，CAW 集成方案在 README 中有完整设计。
+**原则**：CAW 在任何交付路径中都是必选项。降级的是 Agent 复杂度、联调覆盖范围和 Evaluator 实现深度，而非移除 CAW。
 
 ### Tier 3 — 降级 B：去 Agent 自动化，手动分步 Demo
 
@@ -225,5 +231,5 @@ Week 4 实际可用的开发天数可能只有 3-4 天（取决于 Week 3 任务
 
 - **Evaluator 误判问题不会在 Hackathon 期间解决**——这是研究问题，不是工程问题。checklist 缓解但不消除。Demo 时我们能做的最好的事情是选一个"5/5 明显合格"的交付物，然后坦诚说这个局限。
 - **单 Evaluator 是一个设计缺陷，不是一个"未来改进"**——但 MVP 只能这样。在 Demo 中不要试图解释"为什么一个 Evaluator 也够安全"，直接承认它不够安全，指出 MRC（多仲裁委员会，ERC-8004）是解。
-- **CAW 的价值在 Demo 阶段很难展示**——Policy Engine 的拦截逻辑在测试网上看不出来（因为没有恶意 Agent 触发它）。CAW 主要是"纸面上的安全架构"——在 Hackathon 场景下花大量时间集成一个在 Demo 中看不出来的东西，投入产出比存疑。建议优先保合约和 Evaluator 的 demo 效果，CAW 作为架构阐述而非 live demo。
+- **CAW 集成是赛道硬性要求，Demo 中必须 live 展示**——Pact 预算授权 + MPC 签名流程需要完整跑通并呈现在 Demo 中。重点展示：Agent 通过 CAW Pact 授权交易额度 → CAW MPC 签名 → 合约交互上链。这是与赛道对齐的核心证据。Policy Engine 拦截逻辑在测试网上不易自然触发，可在 Demo 旁白中说明其在生产环境的安全价值。
 - **Trustless 边界是项目最容易被误解的点**——如果评审说"这不完全 trustless"，回答不是"但我们有 checklist"，而是"对。ERC-8183 的 trustless 只管到资金托管和结算执行。验收判断天生不是 trustless 的——标准自己承认 Evaluator 是 single point of trust。AI 在这里的角色不是消除信任，是让信任变得可复查——公开 checklist 评分和理由，让人在事后能判断 Evaluator 判得对不对。"

@@ -1,95 +1,78 @@
-# Week 3 — Cobo 赛道对齐
+Agent 在可控边界内的钱包管理与资金执行
 
-> Sponsor Workshop 任务：Cobo 赛道对齐
-> 作者：Calciux | 日期：2026-06-04
-> 赛道：Cobo · Agentic Commerce · 02 Trustless Agent Work Agreements
+    1. 钱包持有 — MPC 非托管，Agent 无完整私钥
 
----
+    Agent 不持有完整私钥。CAW 使用 MPC（多方计算），私钥分片存储在本地 TSS 节点和 Cobo 服务端各一份。Agent 调用 caw tx call 时，TSS 节点协同签名，Agent 无法单方面导出私钥或绕过签名流程。
 
-## AI Agent 如何持有钱包
 
-每个 Agent 通过 Cobo Agentic Wallet（CAW）持有一个 MPC 钱包。私钥分片存储，不完整出现在任何单一设备上——签名需要多方协作，单点被攻破不影响资产安全。
+    Agent 可见：钱包地址、余额、API Key
+    Agent 不可见：完整私钥、TSS 密钥分片、App 审批权限
 
-```
-Client Agent ── CAW 钱包 A ── 发包、fund、托管赏金
-Provider Agent ── CAW 钱包 B ── 接单、接收报酬
-```
 
-Agent 不接触私钥，不能绕过 CAW 直接签名。所有链上操作走 CAW API。
+    2. 预算管理 — Pact 三层约束
 
----
+    每笔资金操作前，Agent 必须先提交 Pact，人在 App 批准后生效。Pact 内置三层约束：
 
-## 如何管理预算
+    层: 范围约束 (when)
+    机制: 限制链、合约地址、代币
+    示例: 只能调 Sepolia 上的 ERC-8183 合约，不能调其他合约
+    ────────────────────────────────────────
+    层: 额度约束 (deny_if)
+    机制: 单笔上限、日/周/月累计上限
+    示例: 单笔 ≤ 0.01 ETH，24h 累计 ≤ 0.02 ETH
+    ────────────────────────────────────────
+    层: 生命周期约束 (completion_conditions)
+    机制: 交易次数或时间到期自动失效
+    示例: 做完 2 笔交易后 Pact 自动撤销，Agent 失去所有操作权限
 
-两级预算控制：
+    Pact 生效期间，Agent 每笔操作都强制经过 Policy 引擎校验。越界操作被系统直接拒绝，Agent 无法自行修改 Pact 规则。
 
-| 级别 | 谁设定 | 内容 |
-|------|--------|------|
-| **Pact（任务级）** | Client Agent 提交，Owner 审批 | 单次任务的目标、预算上限、可调用合约、时间窗口、失败处理策略 |
-| **Policy Engine（基础设施级）** | Owner 在 CAW 后台配置 | 全局规则：per-transaction 上限、rolling window 限额、白名单地址 |
+    3. 支付 / 交易执行 — 全链路可控
 
-Pact 的关键约束——Agent 只能在 Pact 定义的边界内操作：
+    完整的资金执行链路：
 
-- 任务结束或预算用完 → Pact 自动终止
-- 超出 Pact 范围的操作 → Policy Engine 在基础设施层拒绝，不到链上
-- Owner 随时可撤回 Pact——链上操作立即停止
 
----
+    ① Agent 构造 Pact → 提交到 CAW
+    ② 人（Owner）在 App 审查 policies + 金额 + 合约 → 批准或拒绝
+    ③ Pact 激活后，Agent 执行 caw tx call → 调 ERC-8183 fund()
+    ④ 每笔交易前 Policy 引擎再次校验（是否在 chain_in、contract_addr、amount 范围内）
+    ⑤ 资金锁入 ERC-8183 Escrow → Agent 只控制 fund，不能撤资
+    ⑥ Evaluator 裁决后，合约自动放款给 Provider —— Agent 不经手放款
 
-## 如何执行支付 / 交易
 
-本项目的支付路径：
+    关键设计：Agent 不接触中间资金。 fund() 后资金在 Escrow 合约里，Agent 不能单方面 take。放款由合约逻辑 + Evaluator 裁决触发，Agent 只负责触发入口操作。
 
-```
-① Client Agent 提交 Pact（任务意图 + 预算 + 时间窗口 + 操作范围）
-   → Owner 审批（手机 App 确认或自动通过）
-   → Pact 进入 ACTIVE 状态
+    4. 风险边界记录
 
-② Client Agent 调 CAW API 执行 fund()
-   → Policy Engine 检查：这笔金额在 Pact 预算内吗？目标合约在白名单里吗？
-   → 通过 → CAW 签名 → 链上 ERC-8183 合约.fund() → 资金进入 Escrow
+    风险: Prompt Injection 攻击
+    级别: 🔴
+    控制措施: Pact 白名单限制合约地址 + 函数选择器。Agent
+      被注入也无法调未授权合约
+    ────────────────────────────────────────
+    风险: Agent 超额支出
+    级别: 🟡
+    控制措施: deny_if 单笔上限 + 累计上限，Pact 过期自动撤销。超出即拒绝
+    ────────────────────────────────────────
+    风险: 私钥泄露
+    级别: 🟡
+    控制措施: MPC 分片存储，Agent 无完整私钥。本地 secrets.db 已备份
+    ────────────────────────────────────────
+    风险: Evaluator 误判
+    级别: 🔴
+    控制措施: checklist 评分公开可复查，低金额测试（0.001
+      ETH），人可事后介入争议
+    ────────────────────────────────────────
+    风险: Agent 挪用 Escrow 资金
+    级别: —
+    控制措施: 不可行。ERC-8183 合约逻辑确保 fund 后只有 Evaluator
+      能放款，Agent 无权限
+    ────────────────────────────────────────
+    风险: L1 Gas 倒挂
+    级别: 🟡
+    控制措施: Sepolia 测试网，gas 成本为零。主网部署前需评估
+    ────────────────────────────────────────
+    风险: CAW API 中断
+    级别: 🟡
+    控制措施: Fallback：EOA 钱包 + web3.py 替代，Pact 权限流程以日志/截图展示
 
-③ Evaluator complete() → 合约释放资金给 Provider
-   → CAW 审计日志记录：谁发起、谁收款、金额、交易哈希、时间戳
-```
-
-交易不在 Agent 本地签名——CAW 在服务端做 MPC 签名，同时 Policy Engine 做确定性拦截。Agent 只生成候选操作，基础设施强制执行边界。
-
----
-
-## 如何记录风险边界
-
-三层记录：
-
-| 层 | 记录什么 | 记录在哪 |
-|----|---------|---------|
-| **授权层** | Pact 的边界设定（金额/合约/时间窗/操作类型）——出事后可查「当时谁批了什么」 | CAW 审计日志 |
-| **执行层** | 每笔链上操作（fund/submit/complete/reject）——交易哈希、调用者、参数、状态变更 | 链上事件日志 + Etherscan |
-| **验收层** | Evaluator 的 checklist 评分 + Accept/Reject 理由——出事后可查「为什么判过/不过」 | 链下公开存储（可被复查） |
-
-本项目的已知风险边界：
-
-| 风险 | CAW 管得了吗 | 说明 |
-|------|:---:|------|
-| Agent 超预算花钱 | ✅ | Pact 预算上限 + Policy Engine 拦截 |
-| Agent 调未授权合约 | ✅ | Pact 白名单 + Policy Engine |
-| Evaluator 误判 | ❌ | 概率模型根本局限，需 checklist + 理由公开缓解 |
-| Evaluator 偏袒某一方 | ❌ | 单点信任风险，未来多仲裁 + ERC-8004 |
-
-CAW 管**执行边界**——钱花多少、花在哪、花多久。不管**判断质量**——交付物好不好、Evaluator 判得对不对。后者是协议层的风险，不是钱包层能解决的。
-
----
-
-## 与 ERC-8183 的分工
-
-```
-CAW：钱包 + 权限 + 审计           ERC-8183：托管 + 交付 + 结算
-
-「能不能花这笔钱」                 「钱花了之后怎么锁、怎么放」
- Pact 边界                        Escrow 状态机
- Policy Engine                    6 状态转移
- Audit Log                        Evaluator 裁决
- MPC 安全签名                     链上收据不可篡改
-```
-
-CAW 管事前（能不能花），ERC-8183 管事中和事后（钱怎么锁、交付怎么验、结算怎么执行）。两者组合才构成完整的 Agentic Commerce 链路。
+    一句话：Agent 持有工具而非钥匙。 能发起交易但不能越界，能管理资金但不能占有资金。边界不靠信任靠规则——规则写在 Pact 里，由 CAW Policy 引擎强制校验，由 ERC-8183 合约锁死资金流。

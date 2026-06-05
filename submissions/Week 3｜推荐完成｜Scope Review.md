@@ -17,6 +17,7 @@ createJob → setBudget → fund → submit → complete → 付款
 | 层 | 交付物 | 状态 |
 |----|--------|:---:|
 | 合约 | ERC-8183 Escrow 最小合约（Solidity），Sepolia 部署 | 未开始 |
+| 钱包 | CAW（Cobo Agentic Wallet）集成 | 未开始 |
 | Agent 脚本 | Client Agent（发包+fund）、Provider Agent（接单+submit） | 未开始 |
 | Evaluator | LLM Evaluator（checklist 评分 → Accept/Reject） | 未开始 |
 | Demo | CLI 跑通全流程 + Etherscan tx hash 验证 | 未开始 |
@@ -36,8 +37,7 @@ createJob → setBudget → fund → submit → complete → 付款
 
 | # | 功能 | 理由 | 替代方案 |
 |---|------|------|---------|
-| 3 | **CAW（Cobo Agentic Wallet）集成** | CAW Pact 任务级预算授权是赛道加分项，但集成复杂度未知（文档阅读+API对接+故障排查），MVP 用 EOA 钱包跑通 Happy Path 后再接入风险更低 | Week 4 用 EOA 私钥钱包（ethers.js/web3.py）直接签名交易。Demo 中说明「当前用 EOA，CAW 集成路线已规划」 |
-| 4 | **Hook 系统（FundTransferHook / BiddingHook）** | Proposal 中的场景 A（Agent 代客 Swap）和场景 B（竞价接单）都依赖 Hook，但 Hook 是 ERC-8183 的扩展点而非核心状态机。核心状态机跑通后再加 Hook | Week 4 合约不含任何 Hook。Demo 场景用最简单的「Provider 交付文本报告、Evaluator 对照 checklist 验收」 |
+| 3 | **Hook 系统（FundTransferHook / BiddingHook）** | Proposal 中的场景 A（Agent 代客 Swap）和场景 B（竞价接单）都依赖 Hook，但 Hook 是 ERC-8183 的扩展点而非核心状态机。核心状态机跑通后再加 Hook | Week 4 合约不含任何 Hook。Demo 场景用最简单的「Provider 交付文本报告、Evaluator 对照 checklist 验收」 |
 
 ### 🎭 Mock（Week 4 做假的替代，保持 Demo 完整）
 
@@ -52,14 +52,14 @@ createJob → setBudget → fund → submit → complete → 付款
 
 ```
 合约：ERC-8183 核心状态机（无 Hook）
-钱包：EOA 私钥（无 CAW）
+钱包：EOA 私钥 + CAW 集成
 Agent：Client + Provider + Evaluator 三个 Python 脚本
 验收：LLM checklist 评分（5 项 ≥4 通过）
 Provider：硬编码单地址（无竞价）
 Demo：CLI + Etherscan tx hash
 ```
 
-**不做的事一句话总结**：无 Hook、无 CAW、无前端、无声誉、无竞价、无多仲裁。
+**不做的事一句话总结**：无 Hook、无前端、无声誉、无竞价、无多仲裁。
 
 ---
 
@@ -78,10 +78,8 @@ Demo：CLI + Etherscan tx hash
 
 优先级从高到低：
 
-1. CAW 文档阅读（不集成，仅读文档产出集成评估笔记）— 30min
-2. Demo 视频录制 + 剪辑 — 1h
-3. README 完善 + Hackathon 提交包整理 — 30min
-4. ~~CAW 实际集成~~ ← 明确不做，除非合约+Agent+联调全部提前 2 天完成
+1. Demo 视频录制 + 剪辑 — 1h
+2. README 完善 + Hackathon 提交包整理 — 30min
 
 ---
 
