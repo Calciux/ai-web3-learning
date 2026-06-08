@@ -1,20 +1,24 @@
 # Week 4 Sprint Plan
 
-> Hackathon 开发冲刺 · 按模块列出检查清单 · 真实实现 vs Mock/Fallback
-> 作者：Calciux | 日期：2026-06-05
+> Hackathon 开发冲刺 · 任务清单 · 真实实现 vs Mock/Fallback
+> 作者：Calciux | 更新：2026-06-07
 > 赛道：Cobo · Agentic Commerce · 02 Trustless Agent Work Agreements
+> 工具链：Foundry（forge/cast/anvil）+ CAW CLI + Python
 
 ---
 
 ## 总览：Week 4 目标
 
-一条 Happy Path 链上跑通，在 CAW 钱包中完成全流程：`createJob → setBudget → fund → submit → complete → 付款`
+一条 Happy Path 链上跑通：`createJob → setBudget → fund → submit → complete → 付款`
 
 **Tier 策略**：
-- **Tier 1（靶心）**：合约 + CAW + 3 Agent 脚本全自动 — 本周目标
-- Tier 2（缩减）：合约 + CAW + 减少 Agent 数量 / 简化 Pact — 如果 CAW 集成卡死超过 4 小时则缩减范围
-- Tier 3（保底）：合约 + CAW + Remix 手动交互
-- Tier 4（底线）：合约 + CAW + 部署 + Etherscan 验证
+
+| Tier | 内容 | 触发条件 |
+|:----:|------|----------|
+| **Tier 1（靶心）** | 合约 + CAW + 3 Agent 脚本全自动 | 默认目标 |
+| Tier 2（缩减） | 合约 + CAW + 减少 Agent / 简化 Pact | CAW 集成卡住超 4h |
+| Tier 3（保底） | 合约 + CAW + cast 手动交互 | Agent 脚本问题 |
+| Tier 4（底线） | 合约部署 + cast 手动调 + Etherscan 验证 | 只要合约在 Sepolia 上状态流转正确 |
 
 ---
 
@@ -24,177 +28,121 @@
 
 | # | 任务 | 真实/Mock | 说明 |
 |---|------|:---:|------|
-| A1 | Hardhat 环境搭建（hackrepo） | ✅ 真实 | `npx hardhat init`，安装依赖 |
-| A2 | ERC-8183 合约骨架 | ✅ 真实 | `contracts/TrustlessWorkAgreement.sol`：状态枚举 + 结构体 + 事件 |
-| A3 | 核心函数编码 | ✅ 真实 | `createJob` / `setBudget` / `fund` / `submit` / `complete` / `reject` / `claimRefund` / `expire` |
-| A4 | Remix VM 冒烟测试 | ✅ 真实 | 手动走通所有 8 个转移路径 |
-| A5 | Sepolia 部署 | ✅ 真实 | Hardhat 部署脚本 → 合约地址 + tx hash |
+| A1 | ~~Hardhat 环境搭建~~ | — | **已取消**，已切换为 Foundry ✅ |
+| A2 | Foundry 环境就绪 + forge build 通过 | ✅ 真实 | `forge build` 编译 interfaces，零 error ✅ |
+| A3 | ERC-8183 合约实现 | ✅ 真实 | `contracts/ERC8183Escrow.sol`：状态机 + 权限检查 + ERC-20 转账 |
+| A4 | MockERC20 测试代币 | 🎭 Mock | `test/mocks/MockERC20.sol`：mint + approve 测试用 |
+| A5 | Foundry 测试 | ✅ 真实 | `test/ERC8183Escrow.t.sol`：Happy Path + 异常路径 |
+| A6 | Sepolia 部署 | ✅ 真实 | `forge script` 或 `forge create` → 合约地址 + tx hash |
 
 ### 验证 Checklist
 
-- [ ] `createJob` → 状态 Open
-- [ ] `setBudget` → budget 存储
-- [ ] `fund` → 转账进合约，状态 Funded
-- [ ] `submit` → 状态 Submitted
-- [ ] `complete` → 转账给 Provider，状态 Completed
-- [ ] `reject` → 退款给 Client，状态 Rejected
-- [ ] `claimRefund` → 超时退款
-- [ ] ⚠️ Funded 后 Client 不能 withdraw
-- [ ] ⚠️ 非 Evaluator 不能调 complete/reject
+- [ ] `createJob` → 状态 Open，emit JobCreated
+- [ ] `setBudget` → budget 存储，emit BudgetSet
+- [ ] `fund` → ERC-20 transferFrom 进合约，状态 Funded，emit Funded
+- [ ] `submit` → 状态 Submitted，emit Submitted
+- [ ] `complete` → ERC-20 transfer 给 Provider，状态 Completed，emit Completed
+- [ ] `reject`（Open 时 Client 调）→ 状态 Rejected，emit Rejected
+- [ ] `reject`（Funded/Submitted 时 Evaluator 调）→ 退款给 Client
+- [ ] `claimRefund` → 过期后任何人调，退款给 Client，emit Expired
+- [ ] ⚠️ Funded 后 Client 不能调 reject（应 revert）
+- [ ] ⚠️ 非 Evaluator 不能调 complete / reject（Submitted 时）
 - [ ] ⚠️ claimRefund 不被任何 modifier 拦截
 
 ### Go/No-Go
 
-合约必须 Sepolia 部署 + 6 状态全部走通。做不到 → 不进其他模块，继续修合约。
+合约必须 Sepolia 部署 + 6 状态 + 3 条安全约束全部通过 `forge test`。做不到 → 不进其他模块。
 
 ---
 
-## 模块 B：CAW 钱包集成 — Agent 资金账户
+## 模块 B：CAW 钱包集成
 
-> Cobo 赛道硬要求：Agent 必须通过 CAW 持有和管理资金。
+> Cobo 赛道硬要求：Agent 须通过 CAW 持有和管理资金。
 
 ### 任务清单
 
 | # | 任务 | 真实/Mock | 说明 |
 |---|------|:---:|------|
-| B1 | Cobo 账号注册 + API Key 创建 | ✅ 真实 | 开发者身份注册，生成 API Key |
-| B2 | 创建两个 CAW MPC 钱包 | ✅ 真实 | Client Agent 钱包 + Provider Agent 钱包，记录 wallet ID |
-| B3 | 阅读 CAW 关键文档 | ✅ 真实 | 5-min Quickstart / Pact 提交 / 转账 / 合约调用 / Audit Log |
-| B4 | 分离 Agent 钱包与合约调用者 | ✅ 真实 | CAW 钱包存资金 → Agent 脚本调 CAW API → CAW 签名 → 链上合约执行 |
-| B5 | Client CAW 钱包充值 | ✅ 真实 | Sepolia Faucet 或 Cobo 内置水龙头 → 转入测试 ETH |
-| B6 | Pact 提交 | ✅ 真实 | 每条 Job 提交一个 Pact：任务意图 + 预算上限 + 合约/时间窗口 |
-| B7 | 通过 CAW API 执行 fund() | ✅ 真实 | Agent 脚本 → CAW API → Policy Engine 检查 → MPC 签名 → 链上交易 |
-| B8 | 通过 CAW API 执行转账 | ✅ 真实 | Provider 收款 + 结算走 CAW |
+| B1 | CAW 环境确认 | ✅ 真实 | caw CLI 可用 + MPC 钱包已 active + Sepolia 余额 |
+| B2 | Pact 模板构造 | ✅ 真实 | policies（合约白名单 + 函数选择器 + 金额上限）+ completion_conditions |
+| B3 | Pact 提交 + App 审批 | ✅ 真实 | `caw pact submit` → App 弹窗 → 人点批准 |
+| B4 | caw tx call 调 fund() | ✅ 真实 | Pact 激活后通过 CAW 调 ERC-8183.fund() |
+| B5 | tx hash 验证 | ✅ 真实 | `caw tx get` → tx hash → Sepolia Etherscan |
 
 ### 验证 Checklist
 
-- [ ] Client CAW 钱包有余额（Sepolia ETH）
-- [ ] Provider CAW 钱包创建成功
-- [ ] Pact 创建 → 状态 ACTIVE
-- [ ] CAW API 返回 tx hash → Etherscan 可查
-- [ ] Audit Log 记录完整（谁发起、金额、操作类型、状态）
-- [ ] 超出 Pact 边界的操作被 Policy Engine 拒绝（验证拦截能力）
+- [ ] Pact 提交成功后 App 收到审批通知
+- [ ] Pact 的 policies 白名单限制生效（调未授权合约被拒绝）
+- [ ] caw tx call fund() → 返回 tx hash → Etherscan 查到 confirmed
+- [ ] CAW 钱包余额变化可验证
 
-### Tier 2 缩减条件
+### Fallback
 
-**只有 CAW 集成卡死超过 4 小时无进展时才考虑缩减范围。** 缩减后保留 CAW 但减少 Agent 数量或简化 Pact 逻辑，绝不降级到 EOA。
+如果 CAW API 中断或 TSS 超时：
+- **Fallback A**：用 cast send（EOA 私钥）替代 caw tx call，Pact 流程以截图/日志展示
+- **Fallback B**：全程 cast send + web3.py，CAW 作为架构图组件出现在 README
 
 ---
 
-## 模块 C：Agent 脚本 — Client / Provider / Evaluator
+## 模块 C：Agent 脚本
 
 ### 任务清单
 
 | # | 任务 | 真实/Mock | 说明 |
 |---|------|:---:|------|
-| C1 | 项目结构 | ✅ 真实 | `agents/` 目录，`requirements.txt` |
-| C2 | Client Agent 脚本 | ✅ 真实 | 调 CAW API → 提交 Pact → `createJob` → `setBudget` → `fund` |
-| C3 | Provider Agent 脚本 | ✅ 真实 | 调 CAW API → `submit` |
-| C4 | Provider 地址 | 🎭 Mock | 硬编码单地址 `PROVIDER_WALLET = "0x..."` |
-| C5 | 调试脚本 | ✅ 真实 | `check_status.py <jobId>` → 合约状态、余额、事件 |
-| C6 | LLM Evaluator 脚本 | ✅ 真实 | 读 job 信息 → 构造 prompt → 调 LLM API → checklist 5 项 → ≥4 `complete`，<4 `reject` |
-| C7 | Checklist 设计 | ✅ 真实 | 5 项 yes/no + 理由：完整性 / 匹配度 / 格式 / 逻辑 / 可验证性 |
-| C8 | Temperature = 0 | ✅ 真实 | 降低 LLM 随机性 |
-| C9 | Demo 交付物 | 🎭 Mock | 预选明显合格的文本，确保 Demo 不被误判打断 |
-| C10 | 端到端联调 | ✅ 真实 | `demo.py` 全流程：Client → Provider → Evaluator，Etherscan 每步确认 |
+| C1 | Client Agent | ✅ 真实 | Python：createJob → setBudget → approve → fund（通过 CAW 或 cast） |
+| C2 | Provider Agent | ✅ 真实 | Python：读 Job → 链下执行任务 → submit |
+| C3 | Evaluator Agent | ✅ 真实 | Python：获取 deliverable → checklist 评分 → complete/reject |
+| C4 | 3 Agent 串联 | ✅ 真实 | 一键脚本或分步执行，展示全流程自动化 |
 
-### 联调查验
+### 验证 Checklist
 
-```
-Step 1 (Client):  Pact ACTIVE? → fund tx hash? → 合约余额 = budget?
-Step 2 (Provider): submit tx hash? → 合约状态 Submitted?
-Step 3 (Evaluator): checklist 评分? → complete tx hash? → Provider 余额增加?
-```
+- [ ] Client Agent 成功 fund，Etherscan 上看到 Funded 事件
+- [ ] Provider Agent 成功 submit，deliverable hash 可验证
+- [ ] Evaluator checklist 评分有明确通过/不通过理由
+- [ ] Evaluator complete() 后 Provider 钱包余额增加
+- [ ] Evaluator reject() 后 Client 收到退款
 
-### Go/No-Go
+### Mock 说明
 
-全流程 Sepolia + CAW 跑通至少一次。跑不通 → 缩减 Tier 2（减少 Agent 数量，保留 CAW）。
+| 项 | 做法 |
+|----|------|
+| Provider 任务 | 脚本硬编码一个简单任务（如「生成 Sepolia 最近 5 笔 tx 摘要」） |
+| Evaluator 评分 | 用 checklist 5 项 yes/no，≥4 为 Accept |
+| 多 Provider 竞价 | 硬编码 1 个 Provider，Demo 时诚实说明 |
 
 ---
 
-## 模块 D：Demo & 提交
+## 模块 D：Demo 与提交包
 
 ### 任务清单
 
 | # | 任务 | 真实/Mock | 说明 |
 |---|------|:---:|------|
-| D1 | Demo 视频录制 | ✅ 真实 | CLI 录屏：全流程 + 每步 Etherscan tx hash + CAW Audit Log |
-| D2 | README 完善 | ✅ 真实 | 架构图、Mermaid 状态机、合约地址、tx hash、CAW 集成说明、已知局限 |
-| D3 | 提交包整理 | ✅ 真实 | 合约地址 + repo + Demo 视频 + README + CAW 集成证据 |
-| D4 | Proposal Memo 更新 | ✅ 真实 | 加入实际 tx hash + 合约地址 + CAW wallet ID |
+| D1 | CLI 录屏 | ✅ 真实 | 分步展示全流程，每步标 tx hash |
+| D2 | Etherscan 截图 | ✅ 真实 | 6 个事件在 Sepolia 链上全部可见 |
+| D3 | README 完善 | ✅ 真实 | 架构图 + 部署地址 + 运行步骤 + 局限声明 |
+| D4 | 提交包整理 | ✅ 真实 | repo + 录屏 + 截图 + proposal 汇总 |
 
-### Buffer（时间富裕）
+### 验证 Checklist
 
-| 任务 | 说明 |
-|------|------|
-| 异常路径测试 | `reject` / `claimRefund` / `expire` 在 Sepolia + CAW 上走一遍 |
-| Evaluator 稳定性 | 同一交付物跑 5 次评分，记录方差 |
-| Policy 拦截验证 | 故意发送超边界操作，录下 CAW 拒绝的证据 |
-
----
-
-## 砍掉的功能
-
-| 功能 | 原因 |
-|------|------|
-| Hook | ERC-8183 标注 OPTIONAL，MVP 不实现 |
-| 多 Provider 竞价 | 硬编码单地址 |
-| ERC-8004 声誉 | Dir2 未来增强 |
-| 多 Evaluator 仲裁 | MVP 单 Evaluator |
-| Web UI | CLI Demo 够用 |
+- [ ] Demo 能从头到尾跑通一遍不回滚
+- [ ] 每个步骤有对应的 tx hash 或 Etherscan 截图
+- [ ] README 包含「如何复现」的完整步骤
+- [ ] 结尾坦诚说明已知局限（Evaluator 单点信任、单 Provider）
 
 ---
 
-## 附录 A：真实 vs Mock/Fallback 速查
-
-| 功能 | 实现 | 标记 |
-|------|------|:---:|
-| ERC-8183 合约（6 状态） | Solidity | ✅ 真实 |
-| CAW 钱包创建 + 资金管理 | Cobo API | ✅ 真实 |
-| CAW Pact 任务级授权 | Cobo API | ✅ 真实 |
-| CAW API → fund / 转账 | Agent 脚本调 CAW | ✅ 真实 |
-| Client Agent | Python + CAW API | ✅ 真实 |
-| Provider Agent | Python + CAW API | ✅ 真实 |
-| LLM Evaluator | Python + LLM API | ✅ 真实 |
-| Provider 选择 | 硬编码 | 🎭 Mock |
-| Demo 交付物 | 预选合格文本 | 🎭 Mock |
-| Hook / ERC-8004 / Web UI | 不实现 | ✂️ 砍掉 |
-
----
-
-## 附录 B：Fallback 降级决策
+## 依赖关系
 
 ```
-模块 A 完成（合约 Sepolia 部署 + 6 状态跑通）？
-  YES → 进模块 B + C
-  NO  → 继续修合约
-
-模块 B 完成（CAW 集成：钱包 + Pact + API 调合约）？
-  YES → 进模块 C 联调
-  NO（卡死 >4h）→ 缩减 Tier 2：减少 Agent 数量，保留 CAW
-
-模块 C 完成（全流程 Sepolia 跑通至少一次）？
-  YES → 进模块 D 收尾
-  NO  → 降级 Tier 3：Remix 手动 + Evaluator 手动
-
-模块 D 完成（提交包）？
-  YES → Done 🎉
-  NO  → Tier 4：合约地址 + Etherscan + 设计文档
+模块 A（合约）
+    ↓
+模块 B（CAW 集成）← 依赖合约地址
+    ↓
+模块 C（Agent 脚本）← 依赖 CAW Pact + 合约地址
+    ↓
+模块 D（Demo + 提交包）
 ```
 
----
-
-## 附录 C：时间预算
-
-| 模块 | 内容 | 预估 |
-|------|------|:---:|
-| A | 合约编码 + Remix + Hardhat + Sepolia | 6-8h |
-| B | CAW 注册 + 钱包创建 + Pact + API 集成 | 3-5h |
-| C | Agent 脚本 + Evaluator + 联调 | 4-6h |
-| D | Demo 视频 + README + 提交 | 3-4h |
-
-**总计：16-23h。**
-
----
-
-> 核心原则：**宁可交付一个范围小但跑通的 demo，也不要交付一个范围大但半成品的东西。** CAW 集成是 Cobo 赛道的硬要求——必须做实。
+**Go/No-Go 链**：A 不通过 → 停。B 不通过 → Fallback。C 不通过 → Tier 降级。

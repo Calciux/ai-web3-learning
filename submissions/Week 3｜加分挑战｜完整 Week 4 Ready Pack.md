@@ -26,7 +26,8 @@
 - [Hackathon Direction Card](./Week%203%EF%BD%9C%E6%9C%80%E4%BD%8E%E5%AE%8C%E6%88%90%E8%B7%AF%E5%BE%84%EF%BD%9CHackathon%20Direction%20Card.md)
 - [Week 4 Sprint Plan](./Week%203%EF%BD%9C%E6%9C%80%E4%BD%8E%E5%AE%8C%E6%88%90%E8%B7%AF%E5%BE%84%EF%BD%9CWeek%204%20Sprint%20Plan.md)
 - [赛道选择说明](./Week%203%EF%BD%9C%E6%9C%80%E4%BD%8E%E5%AE%8C%E6%88%90%E8%B7%AF%E5%BE%84%EF%BD%9C%E8%B5%9B%E9%81%93%E9%80%89%E6%8B%A9%E8%AF%B4%E6%98%8E.md)
+- [组队信息与角色分工](./Week%203%EF%BD%9C%E6%9C%80%E4%BD%8E%E5%AE%8C%E6%88%90%E8%B7%AF%E5%BE%84%EF%BD%9C%E7%BB%84%E9%98%9F%E4%BF%A1%E6%81%AF%E4%B8%8E%E8%A7%92%E8%89%B2%E5%88%86%E5%B7%A5.md)
 
 ---
 
-**文件总数：13** | **状态：Week 3 提交包完整**
+**文件总数：14** | **状态：Week 3 提交包完整**
